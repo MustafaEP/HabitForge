@@ -1,0 +1,58 @@
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum HabitFrequency {
+  DAILY
+  EVERYOTHERDAY
+  EVERYTHREEDAY
+  WEEKLY
+  MONTHL
+}
+
+model User {
+  id              String          @id @default(cuid())
+  email           String          @unique
+  name            String          
+  passwordHash    String
+
+  habits          Habit[]
+
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+}
+
+model Habit {
+  id              String          @id @default(cuid())    
+  name            String        
+  status          Boolean         @default(true)
+  frequency       HabitFrequency
+
+  userId          String
+  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  habitLogs       HabitLog[]
+
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+}
+
+model HabitLog {
+  id              String          @id @default(cuid())   
+  isCompleted     Boolean         @default(false)
+
+  habitId         String
+  habit           Habit           @relation(fields: [habitId], references: [id], onDelete: Cascade)
+
+  entryDate       DateTime        @default(now()) @db.Date
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  @@unique([habitId, entryDate])
+}
