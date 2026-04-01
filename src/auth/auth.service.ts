@@ -1,5 +1,4 @@
 import { ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
-import { PrismaService } from 'src/prisma/prisma.service';
 import { UserService } from 'src/user/user.service';
 import { RegisterDto } from './dto/register.dto';
 import * as bcrypt from 'bcrypt';
@@ -8,7 +7,6 @@ import { LoginDto } from './dto/login.dto';
 @Injectable()
 export class AuthService {
     constructor(
-        private prisma: PrismaService,
         private userService: UserService,
     ) {}
 
@@ -25,6 +23,8 @@ export class AuthService {
         // Hash the password before saving the user
         const salt = await bcrypt.genSalt(10);
         const passwordHash = await bcrypt.hash(dto.password, salt);
+
+        console.log('Password hash generated:', passwordHash);
 
         // Create the user
         const user = await this.userService.create({
