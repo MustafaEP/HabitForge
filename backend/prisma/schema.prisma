@@ -22,9 +22,31 @@ model User {
   passwordHash    String
 
   habits          Habit[]
+  refreshTokens   RefreshToken[]
 
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
+}
+
+model RefreshToken {
+  id          String   @id @default(cuid())
+  token       String   @unique
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  userAgent   String?
+  ipAddress   String? 
+  
+  // Security and Tracking
+  isRevoked   Boolean  @default(false)
+  replacedBy  String?  // token rotation
+  
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt 
+
+  @@index([userId])
+  @@index([expiresAt])
 }
 
 model Habit {

@@ -10,6 +10,7 @@ import jwtRefreshConfig from './config/jwt-refresh.config';
 import jwtAccessConfig from './config/jwt-access.config';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './auth/guards/jwt.auth-guard';
+import { HabitModule } from './habit/habit.module';
 
 @Module({
   imports: [
@@ -23,7 +24,7 @@ import { JwtAuthGuard } from './auth/guards/jwt.auth-guard';
     }),
     PrismaModule, 
     UserModule, 
-    AuthModule],
+    AuthModule, HabitModule],
   controllers: [AppController],
   providers: [
     AppService,

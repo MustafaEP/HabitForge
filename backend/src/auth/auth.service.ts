@@ -8,10 +8,12 @@ import { ConfigService } from '@nestjs/config/dist/config.service';
 import { AuthResponse } from './types/auth-response.type';
 import { JwtSignOptions } from '@nestjs/jwt';
 import { StringValue } from 'ms';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class AuthService {
     constructor(
+        private prismaService: PrismaService,
         private userService: UserService,
         private jwtService: JwtService,
         private configService: ConfigService,
@@ -20,7 +22,7 @@ export class AuthService {
     /**
      * Register a new user
      */
-    async register(dto: RegisterDto) {
+    async register(dto: RegisterDto, userAgent?: string, ipAddress?: string) {
         // Check if email is already in use
         const existingUser = await this.userService.findByEmail(dto.email);
         if (existingUser) {
@@ -31,14 +33,13 @@ export class AuthService {
         const salt = await bcrypt.genSalt(10);
         const passwordHash = await bcrypt.hash(dto.password, salt);
 
-        console.log('Password hash generated:', passwordHash);
-
         // Create the user
         const user = await this.userService.create({
             email: dto.email,
             name: dto.name,
             passwordHash: passwordHash,
         });
+
         return {
             id: user.id,
             email: user.email,
@@ -75,18 +76,18 @@ export class AuthService {
         refreshToken: string,
     }> {
         const accessOptions: JwtSignOptions = {
-        expiresIn: this.configService.get<StringValue>('jwtAccess.expiresIn'),
-    };
+            expiresIn: this.configService.get<StringValue>('jwtAccess.expiresIn'),
+        };
 
-    const refreshOptions: JwtSignOptions = {
-        secret: this.configService.get<string>('jwtRefresh.secret'),
-        expiresIn: this.configService.get<StringValue>('jwtRefresh.expiresIn'),
-    };
+        const refreshOptions: JwtSignOptions = {
+            secret: this.configService.get<string>('jwtRefresh.secret'),
+            expiresIn: this.configService.get<StringValue>('jwtRefresh.expiresIn'),
+        };
 
-    const accessToken = await this.jwtService.signAsync(payload, accessOptions);
-    const refreshToken = await this.jwtService.signAsync(payload, refreshOptions);
+        const accessToken = await this.jwtService.signAsync(payload, accessOptions);
+        const refreshToken = await this.jwtService.signAsync(payload, refreshOptions);
 
-    return { accessToken, refreshToken };
+        return { accessToken, refreshToken };
     }
     
     async refreshTokens(
@@ -110,6 +111,29 @@ export class AuthService {
             }
             throw new UnauthorizedException('Invalid refresh token');
         }           
+    }
+
+    /**
+     * Save refresh token in database
+     */
+    private async saveRefreshToken(
+        userId: string,
+        token: string,
+        userAgent?: string,
+        ipAddress?: string,
+    ): Promise<void> {
+        const expiresAt = new Date();
+        expiresAt.setDate(expiresAt.getDate() + 7); // Set expiration to 7 days from now
+
+        await this.prismaService.refreshToken.create({
+            data: {
+                token,
+                userId,
+                userAgent,
+                ipAddress,
+                expiresAt,
+            }
+        });
     }
 
 }

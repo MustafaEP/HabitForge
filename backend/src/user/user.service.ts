@@ -21,4 +21,13 @@ export class UserService {
             data: userCreateDto
         });
     }
+
+    // Find user by ID
+    async findById(id: string) {
+        return this.prisma.user.findUnique({
+            where: {
+                id,
+            },
+        });
+    }
 }
