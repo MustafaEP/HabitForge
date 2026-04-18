@@ -7,5 +7,6 @@ import { HabitModule } from '../habit/habit.module';
   imports: [HabitModule],
   providers: [HabitLogService],
   controllers: [HabitLogController],
+  exports: [HabitLogService]
 })
 export class HabitLogModule {}

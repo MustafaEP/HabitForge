@@ -12,7 +12,6 @@ import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './auth/guards/jwt.auth-guard';
 import { HabitModule } from './habit/habit.module';
 import { HabitLogModule } from './habit-log/habit-log.module';
-import { StreakController } from './streak/streak.controller';
 import { StreakModule } from './streak/streak.module';
 
 @Module({
@@ -28,7 +27,7 @@ import { StreakModule } from './streak/streak.module';
     PrismaModule, 
     UserModule, 
     AuthModule, HabitModule, HabitLogModule, StreakModule],
-  controllers: [AppController, StreakController],
+  controllers: [AppController],
   providers: [
     AppService,
     {
